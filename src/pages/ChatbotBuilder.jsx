@@ -163,11 +163,6 @@ const c = COMPACT
       stepText: "text-sm",
       pagePad: "px-4 py-4",
       gridGap: "gap-6",
-
-      // layout
-      pagePad: "px-5 py-6",
-      gridGap: "gap-8",
-
       // cards
       card: "bg-white rounded-2xl shadow-xl p-6",
       cardTitle: "text-2xl font-bold",
