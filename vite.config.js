@@ -14,7 +14,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // proxy: {
+      proxy: {
     //   // THIS IS THE MAGIC LINE THAT FIXES EVERYTHING
     //   '/api': {
     //     target: 'http://localhost:8000',
