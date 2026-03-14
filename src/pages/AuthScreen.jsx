@@ -1,4 +1,3 @@
-
 // src/pages/AuthScreen.jsx
 import { useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -190,6 +189,44 @@ function SignInForm({ role, isParticipant, navigate }) {
     if (!PASSWORD_RE.test(password)) return setError("Password must be at least 6 characters");
 
     setLoading(true);
+
+    // ───────────────────────────────────────────────────────────────
+    // TEMPORARY DUMMY LOGIN – accept ANY valid email + password
+    // ───────────────────────────────────────────────────────────────
+    try {
+      // Fake network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const fakeRole = isCompanyPage ? "company" : "participant";
+      const fakeUser = {
+        role: fakeRole,
+        email: email,
+        name: email.split('@')[0] || "Test User",
+        access_token: "fake-jwt-token-" + Date.now(),
+      };
+
+      // Save to localStorage (same keys as real login)
+      localStorage.setItem("token", fakeUser.access_token);
+      localStorage.setItem("role", fakeUser.role);
+
+      // Redirect based on role
+      if (fakeRole === "participant") {
+        navigate("/participant/dashboard");
+      } else {
+        navigate("/home");           // or "/dashboard" if that's your real path
+      }
+
+      console.log("Dummy login success:", fakeUser);
+    } catch (err) {
+      setError("Dummy login failed (should never happen)");
+    } finally {
+      setLoading(false);
+    }
+    // ───────────────────────────────────────────────────────────────
+
+    // ───────────────────────────────────────────────────────────────
+    // REAL LOGIN CODE (commented out for now)
+    /*
     try {
       const res = await fetch("http://localhost:8000/auth/login", {
         method: "POST",
@@ -202,37 +239,32 @@ function SignInForm({ role, isParticipant, navigate }) {
 
       const backendRole = data.role || data.user_type;
 
-      // --- ROLE ENFORCEMENT FIX ---
       if (isCompanyPage && backendRole !== "company") {
         setError("This is a Company login page. Please login as Participant.");
-        setLoading(false);
         return;
       }
 
       if (!isCompanyPage && backendRole !== "participant") {
         setError("This is a Participant login page. Please login as Company.");
-        setLoading(false);
         return;
       }
 
-      // Save correct role
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", backendRole);
 
-      // Redirect
       if (backendRole === "participant") {
         navigate("/participant/dashboard");
       } else {
         navigate("/home");
       }
-
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
+    */
+    // ───────────────────────────────────────────────────────────────
   };
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -276,7 +308,6 @@ function SignInForm({ role, isParticipant, navigate }) {
 }
 
 /* ------------------------------ SIGN UP ------------------------------ */
-/* (SignUp panels unchanged — your signup was already correct) */
 
 function SignUpPanel({ role, isParticipant, onToggleMode, navigate }) {
   return (
@@ -330,7 +361,7 @@ function ParticipantSignUpForm({ role, navigate }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          role: "participant",           // ← send role
+          role: "participant",
           email,
           password,
           first_name: firstName,
@@ -528,7 +559,7 @@ function CompanySignUpForm({ role, navigate }) {
       if (data.access_token) {
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", "company");
-        navigate("/dashboard"); // ← consistent with login
+        navigate("/home");
       } else {
         navigate(`/auth?role=${role}&mode=signin`, { replace: true });
       }
@@ -646,8 +677,6 @@ function CompanySignUpForm({ role, navigate }) {
     </form>
   );
 }
-
-/* Your ParticipantSignUpForm, CompanySignUpForm, Field components stay SAME */
 
 function Field({ label, children }) {
   return (
